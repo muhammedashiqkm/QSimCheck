@@ -79,14 +79,20 @@ Respond ONLY with a comma-separated list of matching numbers (e.g., "1, 3, 5"). 
                 except:
                     continue
 
-        return jsonify({
-            "response": "yes" if matched_questions else "no",
-            "matched_questions": matched_questions
-        })
+        # Final response formatting
+        if matched_questions:
+            return jsonify({
+                "response": "yes",
+                "matched_questions": matched_questions
+            })
+        else:
+            return jsonify({
+                "response": "no"
+            })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Production-ready server config
+# Run server in production mode
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
