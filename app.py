@@ -1,3 +1,5 @@
+# app.py
+
 from flask import Flask, request, jsonify
 import requests
 import os
@@ -5,52 +7,67 @@ from dotenv import load_dotenv
 from faiss_rag_utils import build_faiss_index, embed_texts
 import google.generativeai as genai
 from bs4 import BeautifulSoup
+import logging
 
-# Load environment variables and configure Gemini
+# --- Basic Configuration ---
+logging.basicConfig(level=logging.INFO)
 load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-llm = genai.GenerativeModel("gemini-1.5-flash")
+
+# --- Configure Gemini ---
+try:
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    llm = genai.GenerativeModel("gemini-1.5-flash")
+except Exception as e:
+    logging.error(f"Failed to configure Gemini: {e}")
+    llm = None
 
 app = Flask(__name__)
 
-# Utility to remove HTML tags
 def clean_html(text):
+    """Utility to remove HTML tags."""
     return BeautifulSoup(text or "", "html.parser").get_text()
 
 @app.route("/check-question", methods=["POST"])
 def check_question():
+    if not llm:
+        return jsonify({"error": "Gemini model not initialized. Check API Key."}), 503
+
     try:
         data = request.json
         questions_url = data.get("questions_url")
         new_question = data.get("question")
 
         if not questions_url or not new_question:
-            return jsonify({"error": "Missing 'questions_url' or 'question'"}), 400
+            return jsonify({"error": "Request body must contain 'questions_url' and 'question'"}), 400
 
-        # Fetch questions from the provided URL
-        questions = []
+        # --- Fetch questions from the provided URL for each request ---
         try:
-            response = requests.get(questions_url, timeout=5)
-            if response.status_code == 200:
-                questions = response.json()
-        except:
-            pass
+            logging.info(f"Fetching questions from: {questions_url}")
+            response = requests.get(questions_url, timeout=10)
+            response.raise_for_status()  # This will raise an error for bad status codes (4xx or 5xx)
+            questions = response.json()
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Failed to fetch or parse questions from URL: {e}")
+            return jsonify({"error": f"Could not retrieve questions from the provided URL: {e}"}), 500
 
         if not questions:
-            return jsonify({"error": "No questions available"}), 404
+            return jsonify({"error": "No questions were found at the provided URL"}), 404
 
-        # Clean questions and build FAISS index
+        # --- Build FAISS index on-the-fly for each request ---
+        logging.info(f"Building FAISS index for {len(questions)} questions...")
         question_texts = [clean_html(q.get("Question")) for q in questions]
-        index, all_questions, embeddings = build_faiss_index(question_texts)
+        index, _, _ = build_faiss_index(question_texts)
+        
+        # Search for similar questions
         new_embedding = embed_texts([new_question])
-        D, I = index.search(new_embedding, k=10)
+        D, I = index.search(new_embedding, k=5)  # Find top 5 similar
         top_indices = I[0]
 
         # Prepare top matches for Gemini
-        top_matches = [clean_html(questions[i].get("Question")) for i in top_indices]
+        top_matches = [question_texts[i] for i in top_indices]
         match_list = "\n".join(f"{i+1}. {q}" for i, q in enumerate(top_matches))
 
-        # Gemini prompt for bulk semantic similarity check
+        # --- Gemini prompt for bulk semantic similarity check ---
         prompt = f"""
 You are an expert in semantic question detection.
 
@@ -58,7 +75,6 @@ A new question has been added:
 \"\"\"{new_question}\"\"\"
 
 Below is a list of existing questions:
-
 {match_list}
 
 Identify which of the above questions are semantically the same or very similar to the new question.
@@ -66,33 +82,33 @@ Identify which of the above questions are semantically the same or very similar 
 Respond ONLY with a comma-separated list of matching numbers (e.g., "1, 3, 5"). Do NOT explain anything.
 """
 
-        # Call Gemini
+        # Call Gemini and parse response
         response = llm.generate_content(prompt)
         match_numbers = response.text.strip()
 
         matched_questions = []
         if match_numbers:
-            for num in match_numbers.split(","):
+            for num_str in match_numbers.split(","):
                 try:
-                    idx = int(num.strip()) - 1  # Convert 1-based index to 0-based
-                    matched_questions.append(questions[top_indices[idx]])
-                except:
+                    # Convert 1-based index from Gemini to 0-based list index
+                    match_idx_1_based = int(num_str.strip())
+                    original_list_idx = top_indices[match_idx_1_based - 1]
+                    matched_questions.append(questions[original_list_idx])
+                except (ValueError, IndexError):
                     continue
 
-        # Final response formatting
         if matched_questions:
             return jsonify({
                 "response": "yes",
                 "matched_questions": matched_questions
             })
         else:
-            return jsonify({
-                "response": "no"
-            })
+            return jsonify({"response": "no"})
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logging.error(f"An unexpected error occurred: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
 
-# Run server in production mode
+# The __main__ block is kept for local testing but will not be used by Gunicorn
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
