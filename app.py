@@ -99,12 +99,14 @@ def login():
 @app.route("/refresh", methods=["POST"])
 def refresh():
     try:
-        verify_jwt_in_request(locations=['json'], refresh=True)
+        # Expect the refresh token in the Authorization header
+        verify_jwt_in_request(refresh=True) 
         current_user = get_jwt_identity()
         new_access_token = create_access_token(identity=current_user)
         return jsonify(access_token=new_access_token)
-    except Exception:
-        return jsonify({"error": "Invalid, expired, or missing refresh token in JSON body"}), 401
+    except Exception as e:
+        return jsonify({"error": "Invalid, expired, or missing refresh token in headers"}), 401
+
 
 @app.route("/check-question", methods=["POST"])
 @jwt_required()
@@ -245,4 +247,4 @@ Only return groups with more than one question. Do not explain.
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000)
