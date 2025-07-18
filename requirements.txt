@@ -1,8 +1,11 @@
 flask
+flask_sqlalchemy
+flask_jwt_extended
+pymysql
 requests
-beautifulsoup4
-google-generativeai
 python-dotenv
-faiss-cpu
+google-generativeai
+beautifulsoup4
 sentence-transformers
+faiss-cpu
 gunicorn
