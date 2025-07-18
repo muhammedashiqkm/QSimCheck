@@ -84,9 +84,10 @@ docker run -p 5000:5000 --env-file .env flask-rag-app
 
 `POST /refresh`
 
-```json
+**Headers:**
+
 {
-  "refresh_token": "your_refresh_token"
+  "access_token": "new_access_token"
 }
 ```
 
