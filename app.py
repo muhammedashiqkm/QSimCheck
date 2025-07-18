@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 import requests
 from bs4 import BeautifulSoup
+from flask_cors import CORS 
 import logging
 import os
 from datetime import timedelta
@@ -19,6 +20,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
+CORS(app) 
 
 # JWT and SQLAlchemy setup
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
