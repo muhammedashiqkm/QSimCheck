@@ -1,188 +1,152 @@
-# Semantic Question Matcher API
+# Flask FAISS Semantic Question Matcher API
 
-## Project Overview
-
-This project is a Flask-based API that determines if a new question is semantically similar to any question in an existing list. It uses a powerful combination of sentence embeddings, a high-speed vector search index, and a Large Language Model (LLM) to provide accurate semantic matching.
-
-The API is designed to be flexible, allowing the list of existing questions to be provided dynamically with each request via a URL. This makes it ideal for use cases where the source of questions can change frequently.
-
-## Key Features
-
-* **Dynamic Question Sets**: Compares a new question against a list of questions fetched from a URL provided in the API request.
-* **High-Speed Similarity Search**: Uses `sentence-transformers` to generate vector embeddings and `FAISS` to find the most similar questions with minimal latency.
-* **LLM-Powered Validation**: Employs Google's Gemini model to perform a final validation on the top matches, ensuring high accuracy in identifying semantically identical questions.
-* **Production-Ready**: The application is containerized with Docker and deployed using a Gunicorn WSGI server for robust, parallel request handling.
-
-## Technology Stack
-
-* **Backend**: Flask
-* **WSGI Server**: Gunicorn
-* **AI/ML**:
-    * **LLM**: Google Gemini (`gemini-1.5-flash`)
-    * **Embeddings**: `sentence-transformers` (`all-MiniLM-L6-v2` model)
-    * **Vector Search**: `faiss-cpu` (Facebook AI Similarity Search)
-* **Deployment**: Docker
-* **Other Libraries**: Requests, python-dotenv, BeautifulSoup4
+This project provides a secure, production-ready API to:
+- Register and authenticate users using JWT.
+- Check if a new question is semantically similar to existing ones.
+- Group semantically identical questions using FAISS + Gemini LLM.
 
 ---
 
-## API Endpoint Details
+## 🚀 Deployment (Docker + Gunicorn)
 
-### Check for Similar Questions
-
-This endpoint takes a new question and a URL pointing to a JSON list of existing questions, and it returns any matches that are semantically the same.
-
-* **URL**: `/check-question`
-* **Method**: `POST`
-* **Headers**:
-    * `Content-Type: application/json`
-
-#### Request Body (JSON)
-
-| Key             | Type   | Description                                                                              | Required |
-| --------------- | ------ | ---------------------------------------------------------------------------------------- | -------- |
-| `question`      | String | The new question you want to check.                                                      | Yes      |
-| `questions_url` | String | A URL that returns a JSON array of existing question objects. Each object must have a `Question` key. | Yes      |
-
-**Example `curl` Request:**
+### 1. Clone the Repository
 
 ```bash
-curl -X POST http://localhost:5000/check-question \
--H "Content-Type: application/json" \
--d '{
-    "questions_url": "https://beta.onlinetcsv5.meshilogic.co.in/website/ReadCourseQuestionDetails?PaperNameID=94",
-    "question": "What is the difference between synchronic and diachronic linguistics?"
-}'
+git clone https://your-repo-url
+cd your-repo-folder
 ```
 
-### API Responses
+### 2. Add `.env` File
 
-#### 1. Success: Matches Found
-**Status Code**: 200 OK
+Create a `.env` file with:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+JWT_SECRET_KEY=your_strong_jwt_secret
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_HOST=your_db_host
+DB_NAME=college_db
+```
+
+### 3. Build Docker Image
+
+```bash
+docker build -t flask-rag-app .
+```
+
+### 4. Run Docker Container
+
+```bash
+docker run -p 5000:5000 --env-file .env flask-rag-app
+```
+
+---
+
+## 🔐 API Endpoints
+
+### 1. Register a New User
+
+`POST /register`
+
+```json
+{
+  "username": "yourusername",
+  "password": "yourpassword"
+}
+```
+
+---
+
+### 2. Login
+
+`POST /login`
+
+```json
+{
+  "username": "yourusername",
+  "password": "yourpassword"
+}
+```
+
+**Returns:**
+
+```json
+{
+  "access_token": "JWT access token",
+  "refresh_token": "JWT refresh token"
+}
+```
+
+---
+
+### 3. Refresh Token
+
+`POST /refresh`
+
+```json
+{
+  "refresh_token": "your_refresh_token"
+}
+```
+
+---
+
+### 4. Check Semantically Similar Question
+
+`POST /check-question`  
+**JWT Required**
+
+```json
+{
+  "questions_url": "https://example.com/api/questions",
+  "question": "Explain the role of loops in Python."
+}
+```
+
+**Returns:**
 
 ```json
 {
   "response": "yes",
-  "matched_questions": [
-    {
-      "QuestionID": 123,
-      "Question": "What are the main distinctions between diachronic and synchronic approaches in linguistics?",
-      "Answer": "..."
-    }
-  ]
+  "matched_questions": [ ... ]
 }
 ```
 
-#### 2. Success: No Matches Found
-**Status Code**: 200 OK
+---
+
+### 5. Group Similar Questions
+
+`POST /group_similar_questions`  
+**JWT Required**
 
 ```json
 {
-  "response": "no"
+  "questions_url": "https://example.com/api/questions"
 }
 ```
 
-#### 3. Client Error: Bad Request
-**Status Code**: 400 Bad Request
+**Returns:**
 
 ```json
 {
-  "error": "Request body must contain 'questions_url' and 'question'"
+  "response": "yes",
+  "matched_groups": [ [ ... ], [ ... ] ]
 }
 ```
 
-#### 4. Server Error: Could Not Fetch Questions
-**Status Code**: 500 Internal Server Error
+---
 
-```json
-{
-  "error": "Could not retrieve questions from the provided URL: ..."
-}
-```
+## 📦 Requirements
 
-## Setup and Deployment
+- Python 3.11+
+- Docker
+- MySQL (configured separately)
 
-You can run this project locally for development or deploy it using Docker for production.
+---
 
-### A. Local Development Setup
+## 🧠 Powered by
 
-Clone the repository and navigate to the project directory.
-
-Create a virtual environment:
-
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Create an environment file: Create a file named `.env` and add your Gemini API key:
-
-```env
-# .env
-GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
-```
-
-Run the Flask development server:
-
-```bash
-python app.py
-```
-
-The server will start on [http://localhost:5000](http://localhost:5000).
-
-### B. Production Deployment with Docker
-
-Ensure Docker is installed and running on your machine.
-
-#### Project Structure
-
-```
-/your-project/
-├── app.py
-├── faiss_rag_utils.py
-├── requirements.txt
-├── Dockerfile
-└── .env
-```
-
-#### Build the Docker Image
-
-```bash
-docker build -t question-checker .
-```
-
-#### Run the Docker Container
-
-```bash
-docker run -d -p 5000:5000 --env-file .env --name my-question-app question-checker
-```
-
-#### Verify and Test
-
-Your API is now running and accessible at [http://localhost:5000](http://localhost:5000).
-
-### Managing the Container
-
-Check logs:
-
-```bash
-docker logs my-question-app
-```
-
-Stop the container:
-
-```bash
-docker stop my-question-app
-```
-
-Remove the container:
-
-```bash
-docker rm my-question-app
-```
+- FAISS (for semantic search)
+- Gemini LLM (Google Generative AI)
+- Sentence Transformers (MiniLM)
