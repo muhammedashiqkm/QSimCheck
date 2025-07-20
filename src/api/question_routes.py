@@ -1,13 +1,18 @@
 import uuid
 import urllib.parse
 import requests
+import os
 from flask import request, jsonify, g, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from src.utils import clean_html, build_vector_index, embed_texts
 
 def register_question_routes(app, limiter):
+    allowed_domains_str = os.getenv('ALLOWED_DOMAINS', '') if os.getenv('ALLOWED_DOMAINS', '') else 'all'
+    allowed_domains = [domain.strip() for domain in allowed_domains_str.split(',')]
+    
     @app.route("/check-question", methods=["POST"])
     @jwt_required()
+    @limiter.limit("20 per minute")
     def check_question():
         request_id = getattr(g, 'request_id', str(uuid.uuid4()))
         current_user = get_jwt_identity()
@@ -29,19 +34,13 @@ def register_question_routes(app, limiter):
                                 extra={'user_id': current_user, 'request_id': request_id})
                 return jsonify({"error": "Request body must contain 'questions_url' and 'question'"}), 400
                 
-            allowed_domains = ['api.example.com', 'questions.yourdomain.com', 'localhost']
             parsed_url = urllib.parse.urlparse(questions_url)
             
-            if not any(domain in parsed_url.netloc for domain in allowed_domains):
+            if not any(domain in parsed_url.netloc for domain in allowed_domains) and allowed_domains_str != 'all':
                 app.logger.warning(f"URL not allowed: {questions_url}", 
                                 extra={'user_id': current_user, 'request_id': request_id})
                 return jsonify({"error": "URL not allowed. Please use an approved API endpoint."}), 403
                 
-            if len(new_question) > 1000:
-                app.logger.warning("Question too long", 
-                                extra={'user_id': current_user, 'request_id': request_id})
-                return jsonify({"error": "Question too long. Please limit to 1000 characters."}), 400
-
             try:
                 app.logger.info(f"Fetching questions from: {questions_url}", 
                             extra={'user_id': current_user, 'request_id': request_id})
@@ -62,10 +61,12 @@ def register_question_routes(app, limiter):
             app.logger.info(f"Building vector index for {len(questions)} questions", 
                         extra={'user_id': current_user, 'request_id': request_id})
             question_texts = [clean_html(q.get("Question")) for q in questions]
+
             index, _, _ = build_vector_index(question_texts)
 
             app.logger.info("Generating embeddings for new question", 
                         extra={'user_id': current_user, 'request_id': request_id})
+
             new_embedding = embed_texts([new_question])
             D, I = index.search(new_embedding, k=5)
             top_indices = I[0]
@@ -123,7 +124,6 @@ def register_question_routes(app, limiter):
 
     @app.route("/group_similar_questions", methods=["POST"])
     @jwt_required()
-    @limiter.limit("10 per minute")
     def group_similar_questions():
         request_id = getattr(g, 'request_id', str(uuid.uuid4()))
         current_user = get_jwt_identity()
@@ -144,7 +144,6 @@ def register_question_routes(app, limiter):
                                 extra={'user_id': current_user, 'request_id': request_id})
                 return jsonify({"error": "Missing 'questions_url' in request"}), 400
                 
-            allowed_domains = ['api.example.com', 'questions.yourdomain.com', 'localhost']
             parsed_url = urllib.parse.urlparse(questions_url)
             
             if not any(domain in parsed_url.netloc for domain in allowed_domains):
@@ -175,15 +174,15 @@ def register_question_routes(app, limiter):
             joined_questions = "\n".join([f"{i+1}. {q}" for i, q in enumerate(question_texts)])
 
             prompt = f"""
-You are an expert question grouping AI. Your task is to review the provided list of academic questions and identify all groups of questions that are *semantically identical*.
-*Definition of Semantically Identical:* Questions are semantically identical if they ask the exact same core question, test the exact same underlying concept/skill, or would require the exact same specific answer/problem-solving approach, regardless of variations in wording, specific numerical values, or names used. Focus strictly on the underlying meaning, not superficial phrasing or keywords.
-Here is the list of questions:\n{joined_questions}
-Return the result as groups of comma-separated numbers representing identical questions. 
-Example output: 
-Group 1: 1, 4, 7
-Group 2: 2, 5
-Only return groups with more than one question. Do not explain.
-"""
+                You are an expert question grouping AI. Your task is to review the provided list of academic questions and identify all groups of questions that are *semantically identical*.
+                *Definition of Semantically Identical:* Questions are semantically identical if they ask the exact same core question, test the exact same underlying concept/skill, or would require the exact same specific answer/problem-solving approach, regardless of variations in wording, specific numerical values, or names used. Focus strictly on the underlying meaning, not superficial phrasing or keywords.
+                Here is the list of questions:\n{joined_questions}
+                Return the result as groups of comma-separated numbers representing identical questions. 
+                Example output: 
+                Group 1: 1, 4, 7
+                Group 2: 2, 5
+                Only return groups with more than one question. Do not explain.
+                """
             app.logger.info("Sending grouping prompt to Gemini API", 
                         extra={'user_id': current_user, 'request_id': request_id})
             result = llm.generate_content(prompt)

@@ -8,12 +8,11 @@ from flask_jwt_extended import (
 from src.utils import log_security_event
 
 def register_auth_routes(app, limiter):
-    # Single user credentials from environment variables
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password")
     
     @app.route("/login", methods=["POST"])
-    @limiter.limit("5 per minute")
+    @limiter.limit("20 per minute")
     def login():
         request_id = getattr(g, 'request_id', str(uuid.uuid4()))
         app.logger.info("Processing login request", extra={'request_id': request_id})
@@ -27,7 +26,6 @@ def register_auth_routes(app, limiter):
                             extra={'request_id': request_id})
             return jsonify({"error": "Username and password are required"}), 400
 
-        # Simple single-user authentication
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             user_agent = request.headers.get('User-Agent', '')
             ip_address = request.remote_addr

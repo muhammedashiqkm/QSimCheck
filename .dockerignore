@@ -1,9 +1,60 @@
+# Git
+.git
+.gitignore
+
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
+.Python
 env/
 venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment
 .env
+.env.example
+
+# Logs
+logs/
+*.log
+
+# Database
 *.db
-.DS_Store
+*.sqlite3
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Tests
+tests/
+.coverage
+htmlcov/
+
+# Documentation
+README.md
+LICENSE
+*.md
