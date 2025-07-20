@@ -1,153 +1,72 @@
-# Flask FAISS Semantic Question Matcher API
+# Question Similarity Checker
 
-This project provides a secure, production-ready API to:
-- Register and authenticate users using JWT.
-- Check if a new question is semantically similar to existing ones.
-- Group semantically identical questions using FAISS + Gemini LLM.
+A Flask application that uses Gemini AI and vector embeddings to check for semantically similar questions.
 
----
+## Features
 
-## 🚀 Deployment (Docker + Gunicorn)
+- Simple single-user authentication with JWT
+- Question similarity checking using vector embeddings and Gemini AI
+- Group similar questions
+- Comprehensive logging
+- Rate limiting
+- Security headers
+- Docker support
 
-### 1. Clone the Repository
+## Project Structure
+
+```
+.
+├── app.py                  # Main application entry point
+├── docker-compose.yml      # Docker Compose configuration
+├── Dockerfile              # Docker build configuration
+├── Makefile                # Build automation
+├── requirements.txt        # Python dependencies
+├── src/                    # Application source code
+│   ├── api/                # API routes
+│   ├── config/             # Application configuration
+│   ├── models/             # Database models
+│   ├── services/           # External services integration
+│   └── utils/              # Utility functions
+└── tests/                  # Test suite
+```
+
+## Setup
+
+1. Clone the repository
+2. Copy `.env.example` to `.env` and fill in your configuration values
+3. Install dependencies:
 
 ```bash
-git clone https://your-repo-url
-cd your-repo-folder
+make setup
 ```
 
-### 2. Add `.env` File
-
-Create a `.env` file with:
-
-```env
-GEMINI_API_KEY=your_gemini_api_key
-JWT_SECRET_KEY=your_strong_jwt_secret
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_HOST=your_db_host
-DB_NAME=college_db
-```
-
-### 3. Build Docker Image
+4. Run the application:
 
 ```bash
-docker build -t flask-rag-app .
+make run
 ```
 
-### 4. Run Docker Container
+## Docker
+
+To run with Docker:
 
 ```bash
-docker run -p 5000:5000 --env-file .env flask-rag-app
+make docker-build
+make docker-run
 ```
 
----
+## API Endpoints
 
-## 🔐 API Endpoints
+- `POST /login` - Login with admin credentials and get JWT tokens
+- `POST /refresh` - Refresh access token
+- `POST /check-question` - Check if a question is similar to existing ones
+- `POST /group_similar_questions` - Group similar questions
+- `GET /health` - Health check endpoint
 
-### 1. Register a New User
+## Testing
 
-`POST /register`
+Run tests with:
 
-```json
-{
-  "username": "yourusername",
-  "password": "yourpassword"
-}
+```bash
+make test
 ```
-
----
-
-### 2. Login
-
-`POST /login`
-
-```json
-{
-  "username": "yourusername",
-  "password": "yourpassword"
-}
-```
-
-**Returns:**
-
-```json
-{
-  "access_token": "JWT access token",
-  "refresh_token": "JWT refresh token"
-}
-```
-
----
-
-### 3. Refresh Token
-
-`POST /refresh`
-
-**Headers:**
-
-{
-  "access_token": "new_access_token"
-}
-```
-
----
-
-### 4. Check Semantically Similar Question
-
-`POST /check-question`  
-**JWT Required**
-
-```json
-{
-  "questions_url": "https://example.com/api/questions",
-  "question": "Explain the role of loops in Python."
-}
-```
-
-**Returns:**
-
-```json
-{
-  "response": "yes",
-  "matched_questions": [ ... ]
-}
-```
-
----
-
-### 5. Group Similar Questions
-
-`POST /group_similar_questions`  
-**JWT Required**
-
-```json
-{
-  "questions_url": "https://example.com/api/questions"
-}
-```
-
-**Returns:**
-
-```json
-{
-  "response": "yes",
-  "matched_groups": [ [ ... ], [ ... ] ]
-}
-```
-
----
-
-## 📦 Requirements
-
-- Python 3.11+
-- Docker
-- MySQL (configured separately)
-
----
-
-## 🧠 Powered by
-
-- FAISS (for semantic search)
-- Gemini LLM (Google Generative AI)
-- Sentence Transformers (MiniLM)

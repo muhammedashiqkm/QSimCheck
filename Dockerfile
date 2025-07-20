@@ -32,6 +32,9 @@ RUN pip install --upgrade pip \
 # ---------- Stage 3: Final runtime ----------
 FROM base
 
+# Create a non-root user to run the application
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
 WORKDIR /app
 
 # Copy installed packages from builder
@@ -41,8 +44,17 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application files
 COPY . .
 
+# Set proper permissions
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Create log directory with proper permissions
+RUN mkdir -p /app/logs && touch /app/app.log && chmod 755 /app/app.log
+
 # Expose port
 EXPOSE 5000
 
 # Default command (Gunicorn for production)
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--log-file", "/app/logs/gunicorn.log", "--access-logfile", "/app/logs/access.log", "app:app"]
