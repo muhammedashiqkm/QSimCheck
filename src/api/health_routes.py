@@ -2,7 +2,6 @@ import uuid
 import os
 from flask import jsonify, g
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from src.models import db
 
 def register_health_routes(app, limiter):
     @app.route("/health", methods=["GET"])

@@ -4,7 +4,7 @@ import uuid
 import os
 from dotenv import load_dotenv
 
-from .models import db
+
 from .config import configure_app
 from .api import register_routes
 from .services import setup_gemini
