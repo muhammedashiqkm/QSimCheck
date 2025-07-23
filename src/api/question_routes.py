@@ -12,7 +12,6 @@ def register_question_routes(app, limiter):
     
     @app.route("/check-question", methods=["POST"])
     @jwt_required()
-    @limiter.limit("20 per minute")
     def check_question():
         request_id = getattr(g, 'request_id', str(uuid.uuid4()))
         current_user = get_jwt_identity()
@@ -75,20 +74,18 @@ def register_question_routes(app, limiter):
             match_list = "\n".join(f"{i+1}. {q}" for i, q in enumerate(top_matches))
 
             prompt = f"""
-                    You are an expert semantic analysis AI. Your task is to compare a "New Question" against a list of "Candidate Questions" and identify which ones are semantically identical.
+                        You are an expert semantic analysis AI. Your task is to compare a "New Question" against a list of "Candidate Questions" and identify which ones are semantically identical.
+                        Definition of Semantically Identical: Two questions are semantically identical if they ask the exact same thing or test the same concept, even if the wording, names, or numbers are different.
+                        *New Question:*
+                        \"\"\"{new_question}\"\"\"
+                        *Candidate Questions:*
+                        {match_list}
+                        Which of the numbered "Candidate Questions" are semantically identical to the "New Question"?
 
-                    Definition of Semantically Identical: Two questions are semantically identical if they ask the exact same thing or test the same concept, even if the wording, names, or numbers are different.
-
-                    *New Question:*
-                    \"\"\"{new_question}\"\"\"
-
-                    *Candidate Questions:*
-                    {match_list}
-                    Which of the numbered "Candidate Questions" are semantically identical to the "New Question"?
-
-                    Return ONLY the numbers of the matching candidates, separated by commas (e.g., "1, 3").
-                    Do not add any explanation or other text.
+                        Return ONLY the numbers of the matching candidates, separated by commas (e.g., "1, 3").
+                        Do not add any explanation or other text.
                     """
+
             app.logger.info("Sending prompt to Gemini API", 
                         extra={'user_id': current_user, 'request_id': request_id})
             response = llm.generate_content(prompt)
