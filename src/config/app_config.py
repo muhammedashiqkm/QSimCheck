@@ -8,7 +8,7 @@ from flask_limiter.util import get_remote_address
 
 def configure_app(app):
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=10)
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
     app.config["JWT_IDENTITY_CLAIM"] = "sub"
     app.config['SECRET_KEY'] = os.getenv("JWT_SECRET_KEY")
 

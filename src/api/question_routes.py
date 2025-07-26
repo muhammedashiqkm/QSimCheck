@@ -171,15 +171,22 @@ def register_question_routes(app, limiter):
             joined_questions = "\n".join([f"{i+1}. {q}" for i, q in enumerate(question_texts)])
 
             prompt = f"""
-                You are an expert question grouping AI. Your task is to review the provided list of academic questions and identify all groups of questions that are *semantically identical*.
-                *Definition of Semantically Identical:* Questions are semantically identical if they ask the exact same core question, test the exact same underlying concept/skill, or would require the exact same specific answer/problem-solving approach, regardless of variations in wording, specific numerical values, or names used. Focus strictly on the underlying meaning, not superficial phrasing or keywords.
-                Here is the list of questions:\n{joined_questions}
-                Return the result as groups of comma-separated numbers representing identical questions. 
-                Example output: 
-                Group 1: 1, 4, 7
-                Group 2: 2, 5
-                Only return groups with more than one question. Do not explain.
-                """
+You are an expert question-grouping AI. Your task is to review the provided list of academic questions and identify all groups of questions that are *semantically identical*.
+
+**Definition of Semantically Identical:** Questions are semantically identical if they ask the same underlying question, test the same concept or skill, or require the same reasoning or answer approach — regardless of differences in phrasing, specific names, numbers, or wording.
+
+Here is the list of questions:
+{joined_questions}
+
+Return the result as groups of comma-separated numbers (based on their position in the list) representing identical questions.
+
+Example output: 
+Group 1: 1, 4, 7  
+Group 2: 2, 5
+
+Only return groups with more than one question. Do not include any explanation.
+"""
+
             app.logger.info("Sending grouping prompt to Gemini API", 
                         extra={'user_id': current_user, 'request_id': request_id})
             result = llm.generate_content(prompt)

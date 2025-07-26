@@ -1,0 +1,226 @@
+[
+  {
+    "ID": 1,
+    "Question": "How do I check my Python version?"
+  },
+  {
+    "ID": 2,
+    "Question": "What is the command to see the installed Python version?"
+  },
+  {
+    "ID": 3,
+    "Question": "How can I find out which version of Python is running?"
+  },
+  {
+    "ID": 4,
+    "Question": "How do you create a virtual environment in Python?"
+  },
+  {
+    "ID": 5,
+    "Question": "What's the command to make a new Python venv?"
+  },
+  {
+    "ID": 6,
+    "Question": "What is the difference between a list and a tuple in Python?"
+  },
+  {
+    "ID": 7,
+    "Question": "When should I use a tuple versus a list?"
+  },
+  {
+    "ID": 8,
+    "Question": "Python lists vs tuples, what's the distinction?"
+  },
+  {
+    "ID": 9,
+    "Question": "What is the capital of Japan?"
+  },
+  {
+    "ID": 10,
+    "Question": "What is Japan's capital city?"
+  },
+  {
+    "ID": 11,
+    "Question": "How do I commit changes in Git?"
+  },
+  {
+    "ID": 12,
+    "Question": "What is the command to save my work in Git?"
+  },
+  {
+    "ID": 13,
+    "Question": "How do you make a commit in a git repository?"
+  },
+  {
+    "ID": 14,
+    "Question": "How to select all columns from a table named 'users'?"
+  },
+  {
+    "ID": 15,
+    "Question": "Write a SQL query to get every record from the 'users' table."
+  },
+  {
+    "ID": 16,
+    "Question": "How do I build a Docker image from a Dockerfile?"
+  },
+  {
+    "ID": 17,
+    "Question": "What's the command to create a Docker image?"
+  },
+  {
+    "ID": 18,
+    "Question": "How do you run a Flask application?"
+  },
+  {
+    "ID": 19,
+    "Question": "What is the command to start the Flask development server?"
+  },
+  {
+    "ID": 20,
+    "Question": "What is the powerhouse of the cell?"
+  },
+  {
+    "ID": 21,
+    "Question": "Which organelle is known as the cell's powerhouse?"
+  },
+  {
+    "ID": 22,
+    "Question": "Who wrote the play 'Hamlet'?"
+  },
+  {
+    "ID": 23,
+    "Question": "How does a blockchain work?"
+  },
+  {
+    "ID": 24,
+    "Question": "What are the primary colors?"
+  },
+  {
+    "ID": 25,
+    "Question": "How to sort a dictionary by value in Python?"
+  },
+  {
+    "ID": 26,
+    "Question": "Tell me the way to check the Python interpreter version."
+  },
+  {
+    "ID": 27,
+    "Question": "Steps to initialize a virtual environment for a Python project."
+  },
+  {
+    "ID": 28,
+    "Question": "Contrast lists and tuples in Python."
+  },
+  {
+    "ID": 29,
+    "Question": "Name the capital city of Japan."
+  },
+  {
+    "ID": 30,
+    "Question": "What are the steps to commit a file in git?"
+  },
+  {
+    "ID": 31,
+    "Question": "What's the SQL to fetch all data from the 'users' table?"
+  },
+  {
+    "ID": 32,
+    "Question": "Steps to build a docker image."
+  },
+  {
+    "ID": 33,
+    "Question": "How to launch a web app made with Flask?"
+  },
+  {
+    "ID": 34,
+    "Question": "Mitochondria is known as what in a cell?"
+  },
+  {
+    "ID": 35,
+    "Question": "What is the boiling point of water at sea level?"
+  },
+  {
+    "ID": 36,
+    "Question": "Explain the theory of relativity."
+  },
+  {
+    "ID": 37,
+    "Question": "What is the purpose of a CSS preprocessor?"
+  },
+  {
+    "ID": 38,
+    "Question": "What is the main function of an operating system?"
+  },
+  {
+    "ID": 39,
+    "Question": "Show me the Python version."
+  },
+  {
+    "ID": 40,
+    "Question": "How to set up an isolated Python environment?"
+  },
+  {
+    "ID": 41,
+    "Question": "What are the key differences between Python lists and tuples?"
+  },
+  {
+    "ID": 42,
+    "Question": "What is the capital of the country Japan?"
+  },
+  {
+    "ID": 43,
+    "Question": "Command for committing staged changes?"
+  },
+  {
+    "ID": 44,
+    "Question": "Query for retrieving all columns and rows in the 'users' table."
+  },
+  {
+    "ID": 45,
+    "Question": "How can I use a Dockerfile to build an image?"
+  },
+  {
+    "ID": 46,
+    "Question": "Starting a Flask app from the command line."
+  },
+  {
+    "ID": 47,
+    "Question": "What part of the cell generates most of its ATP supply?"
+  },
+  {
+    "ID": 48,
+    "Question": "What is the atomic number of Oxygen?"
+  },
+  {
+    "ID": 49,
+    "Question": "Who discovered penicillin?"
+  },
+  {
+    "ID": 50,
+    "Question": "How do you reverse a string in JavaScript?"
+  },
+  {
+    "ID": 51,
+    "Question": "What is the term for the biological mechanism enabling vegetation to synthesize its own nourishment?"
+  },
+  {
+    "ID": 52,
+    "Question": "Can you identify the method green organisms utilize to generate sustenance?"
+  },
+  {
+    "ID": 53,
+    "Question": "By what means do flora create their sustenance from raw materials?"
+  },
+  {
+    "ID": 54,
+    "Question": "Describe the procedure where botanical life produces its essential nutrients."
+  },
+  {
+    "ID": 55,
+    "Question": "The way plants produce their organic compounds is called what?"
+  },
+  {
+    "ID": 56,
+    "Question": "Which scientific phenomenon accounts for how plants sustain themselves by manufacturing their own provisions?"
+  }
+]
